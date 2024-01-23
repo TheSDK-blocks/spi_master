@@ -1,4 +1,4 @@
-module myentity( input reset,
+module hb_universal( input reset,
                  input A, 
                  output Z );
 //reset does nothing
