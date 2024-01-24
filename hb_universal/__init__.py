@@ -35,10 +35,14 @@ from receiver import *
 from plot_PSD import *
 
 
+import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-class hb_universal(thesdk,rtl):
+from toolkit.hb_universal_toolkit import hb_universal_toolkit as hb_universal_tk
+
+
+class hb_universal(rtl,thesdk):
     @property
     def _classfile(self):
         return os.path.dirname(os.path.realpath(__file__)) + "/"+__name__
@@ -51,13 +55,14 @@ class hb_universal(thesdk,rtl):
         self.IOS.Members["convmode"] = IO()
         self.IOS.Members["scale"] = IO()
         self.IOS.Members["output_switch"] = IO()
+        #self.IOS.Members["enable_clk_div"] = IO()
 
         self.IOS.Members["iptr_A"] = IO()
         self.IOS.Members["Z"] = IO()
 
         self.IOS.Members['control_write']= IO() 
-        #self.IOS.Members["clock"] = IO()
-        #self.IOS.Members["reset"] = IO()
+        self.IOS.Members["clock"] = IO()
+        self.IOS.Members["reset"] = IO()
         self.model='py';             # Can be set externally, but is not propagated
         self.par= False              # By default, no parallel processing
         self.queue= []               # By default, no parallel processing
@@ -89,6 +94,7 @@ class hb_universal(thesdk,rtl):
         #Inputs roll after initdone
         self.iofile_bundle.Members['scale'].rtl_io_condition='initdone'
         self.iofile_bundle.Members['output_switch'].rtl_io_condition='initdone'
+        #self.iofile_bundle.Members['enable_clk_div'].rtl_io_condition='initdone'
         self.iofile_bundle.Members['convmode'].rtl_io_condition='initdone'
         self.iofile_bundle.Members['iptr_A'].rtl_io_condition='initdone'
 
@@ -103,10 +109,10 @@ class hb_universal(thesdk,rtl):
             self.main()
         elif self.model in [ 'sv', 'icarus' ]:
             #Inputs
-            _=rtl_iofile(self, name='scale', dir='in', iotype='sample', datatype='int', ionames=['io_control_hb1scale'])
-            _=rtl_iofile(self, name='output_switch', dir='in', iotype='sample', datatype='int', ionames=['io_control_hb3output_switch'])
-            _=rtl_iofile(self, name='mode', dir='in', iotype='sample', datatype='int', ionames=['io_control_mode'])
-            _=rtl_iofile(self, name='convmode', dir='in', iotype='sample', datatype='int', ionames=['io_control_convmode'])
+            _=rtl_iofile(self, name='scale', dir='in', iotype='sample', datatype='int', ionames=['io_in_scale'])
+            _=rtl_iofile(self, name='output_switch', dir='in', iotype='sample', datatype='int', ionames=['io_in_output_switch'])
+            #_=rtl_iofile(self, name='enable_clk_div', dir='in', iotype='sample', datatype='int', ionames=['io_in_enable_clk_div'])
+            _=rtl_iofile(self, name='convmode', dir='in', iotype='sample', datatype='int', ionames=['io_in_convmode'])
             _=rtl_iofile(self, name='iptr_A', dir='in', iotype='sample', datatype='scomplex', ionames=['io_in_iptr_A_real', 'io_in_iptr_A_imag'])
 
             #Outputs
@@ -230,7 +236,6 @@ if __name__=="__main__":
     from itertools import chain
     import plot_format
 
-    import matplotlib.pyplot as plt
     from  hb_universal import *
     from  hb_universal.controller import controller as hb_universal_controller
     import pdb
@@ -245,14 +250,14 @@ if __name__=="__main__":
     hb_universal_controller.start_datafeed()
 
     #Sim controls
-    isInteractive = [False,  True,  False,  False,  False] 
-    isInteractive_decim = [False,  False,  False,  False,  False] 
+    isInteractive = [True] 
+    isInteractive_decim = [False] 
     model = 'sv'
     lang='sv'
 
-    interpolation_factor = 8
+    interpolation_factor = 2
     resolution = 16 
-    modes = [ 'bypass', 'two', 'four', 'eight', "more" ]
+    modes = [  'two'  ]
     simulation_type = 'interp' # interp , interp_decim
     input_list = [ ]
     output_list = [ ]
@@ -267,12 +272,12 @@ if __name__=="__main__":
     #Input, output and intermediate scaling
     scaling = (math.pow(2, resolution - 2) - 1)
     descaling = (math.pow(2, resolution - 2) - 1)
-    block_scales = [4, 4, 4, 512]
-    block_scales_decim = [2, 2, 2, 512]
+    block_scales = [4]
+    block_scales_decim = [2]
 
  
     # 5G, Impulse, Sine, Square, Triangle
-    sig_type = "5G"
+    sig_type = "Impulse"
     # Signals to be printed
     vecs = ["I"] 
     #If coeffs will be plotted
@@ -280,19 +285,19 @@ if __name__=="__main__":
     #If plot sig FFT 
     plot_sig_fft = True
 
-    if simulation_type == "interp":
-        hb1_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb1-config.yml"))
-        hb2_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb2-config.yml"))
-        hb3_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb3-config.yml"))
-    else:    
-        hb1_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb1-config.yml"))
-        hb2_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb2-config.yml"))
-        hb3_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb3-config.yml"))
+   # if simulation_type == "interp":
+   #     hb1_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb1-config.yml"))
+   #     hb2_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb2-config.yml"))
+   #     hb3_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb3-config.yml"))
+   # else:    
+   #     hb1_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb1-config.yml"))
+   #     hb2_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb2-config.yml"))
+   #     hb3_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb3-config.yml"))
 
-    #Plot coeffs and FFT
-    if plot_coeffs:
-        hb_universal_tk.plot_coeff_fft(hb1_H, hb2_H, hb3_H)
-   
+   # #Plot coeffs and FFT
+   # if plot_coeffs:
+   #     hb_universal_tk.plot_coeff_fft(hb1_H, hb2_H, hb3_H)
+   #
 
     if sig_type == "5G":
         #Setup Signal gen and preplot
@@ -345,7 +350,7 @@ if __name__=="__main__":
             dut_decim.IOS.Members["iptr_A"] =dut_interp.IOS.Members["Z"]
 
 
-        interpolation_factor = 2**i
+        interpolation_factor = 2
 
         #Input data
         if sig_type == "5G":
@@ -359,22 +364,20 @@ if __name__=="__main__":
         input_list.append(input_data)
         dut_interp.IOS.Members["iptr_A"].Data = input_data.reshape(-1, 1)
 
-        rst = np.full(vec_len, 0)
-        until_hb3_out_ready = (hb1_H.size * 2 + hb2_H.size * 2 + hb3_H.size * 2) * 4
-        rst[:until_hb3_out_ready] = 1 
-        dut_interp.IOS.Members["reset_loop"].Data = rst.reshape(-1, 1)
+        #rst = np.full(vec_len, 0)
+        #until_hb3_out_ready = (hb1_H.size * 2 + hb2_H.size * 2 + hb3_H.size * 2) * 4
+        #rst[:until_hb3_out_ready] = 1 
+        #dut_interp.IOS.Members["reset_loop"].Data = rst.reshape(-1, 1)
 
-        dut_interp.IOS.Members["mode"].Data = np.full(vec_len, i).reshape(-1, 1)
+        #dut_interp.IOS.Members["mode"].Data = np.full(vec_len, i).reshape(-1, 1)
 
         #These are constants
-        dut_interp.IOS.Members["cic3shift"].Data = np.full(vec_len, 0).reshape(-1, 1)
+        #dut_interp.IOS.Members["cic3shift"].Data = np.full(vec_len, 0).reshape(-1, 1)
         dut_interp.IOS.Members["convmode"].Data = np.full(vec_len, 0).reshape(-1, 1)
+        #dut_interp.IOS.Members["enable_clk_div"].Data = np.full(vec_len, 1).reshape(-1, 1)
 
         if modes[i] in ["bypass","two" ]:    
-            dut_interp.IOS.Members["ndiv"].Data = np.full(vec_len, 1).reshape(-1, 1)
-            dut_interp.IOS.Members["hb1output_switch"].Data = np.full(vec_len,1).reshape(-1, 1)
-            dut_interp.IOS.Members["hb2output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
-            dut_interp.IOS.Members["hb3output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
+            dut_interp.IOS.Members["output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
         elif modes[i] in ["four" ]:    
             dut_interp.IOS.Members["ndiv"].Data = np.full(vec_len, 1).reshape(-1, 1)
             dut_interp.IOS.Members["hb1output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
@@ -392,12 +395,8 @@ if __name__=="__main__":
             dut_interp.IOS.Members["hb3output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
         
         #Scales
-        dut_interp.IOS.Members["hb1scale"].Data = np.full(vec_len, block_scales[0]).reshape(-1, 1)
-        dut_interp.IOS.Members["hb2scale"].Data = np.full(vec_len, block_scales[1]).reshape(-1, 1)
-        dut_interp.IOS.Members["hb3scale"].Data = np.full(vec_len, block_scales[2]).reshape(-1, 1)
-        dut_interp.IOS.Members["cic3scale"].Data = np.full(vec_len, block_scales[3]).reshape(-1, 1)
- 
-        #These are clocks
+        dut_interp.IOS.Members["scale"].Data = np.full(vec_len, block_scales[0]).reshape(-1, 1)
+               #These are clocks
         dut_interp.IOS.Members['control_write'] = hb_universal_controller.IOS.Members['control_write']     
 
 
@@ -414,10 +413,7 @@ if __name__=="__main__":
             dut_decim.IOS.Members["convmode"].Data = np.full(vec_len, 1).reshape(-1, 1)
 
             if modes[i] in ["bypass","two" ]:    
-                dut_decim.IOS.Members["ndiv"].Data = np.full(vec_len, 1).reshape(-1, 1)
-                dut_decim.IOS.Members["hb1output_switch"].Data = np.full(vec_len,1).reshape(-1, 1)
-                dut_decim.IOS.Members["hb2output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
-                dut_decim.IOS.Members["hb3output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
+                dut_decim.IOS.Members["output_switch"].Data = np.full(vec_len,1).reshape(-1, 1)
 
             elif modes[i] in ["four" ]:    
                 dut_decim.IOS.Members["ndiv"].Data = np.full(vec_len, 1).reshape(-1, 1)
@@ -437,10 +433,7 @@ if __name__=="__main__":
                 dut_decim.IOS.Members["hb3output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
 
             #Scales
-            dut_decim.IOS.Members["hb1scale"].Data = np.full(vec_len, block_scales_decim[0]).reshape(-1, 1)
-            dut_decim.IOS.Members["hb2scale"].Data = np.full(vec_len, block_scales_decim[1]).reshape(-1, 1)
-            dut_decim.IOS.Members["hb3scale"].Data = np.full(vec_len, block_scales_decim[2]).reshape(-1, 1)
-            dut_decim.IOS.Members["cic3scale"].Data = np.full(vec_len, block_scales_decim[3]).reshape(-1, 1)
+            dut_decim.IOS.Members["scale"].Data = np.full(vec_len, block_scales_decim[2]).reshape(-1, 1)
      
             #These are clocks
             dut_decim.IOS.Members['control_write'] = hb_universal_controller.IOS.Members['control_write']

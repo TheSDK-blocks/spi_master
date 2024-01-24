@@ -17,16 +17,13 @@ class controller(rtl):
         self.Rs = 100e6;                   # Sampling frequency
         self.step=int(1/(self.Rs*1e-12))   #Time increment for control
         self.time=0
+
         self.IOS=Bundle()
         self.IOS.Members['control_write']= IO()        #We use this for writing
-        _=rtl_iofile(self, name='control_write', dir='in', iotype='event', ionames=['initdone', 'reset'])
+        _=rtl_iofile(self, name='control_write', dir='in', iotype='event', ionames=['initdone', 'reset','io_in_enable_clk_div'])
         #Permanent pointer assignment to write io
         self.IOS.Members['control_write'].Data=self.iofile_bundle.Members['control_write']
  
-        #self.IOS.Members['control_read']= IO()        #We use this for reading
-        #_=rtl_iofile(self, name='control_read', dir='out', iotype='event', datatype='int',
-        #        ionames=['initdone', 'reset'])        
-
         self.model='py';             #can be set externally, but is not propagated
         self.par= False              #By default, no parallel processing
         self.queue= []               #By default, no parallel processing
@@ -36,22 +33,17 @@ class controller(rtl):
             self.copy_propval(parent,self.proplist)
             self.parent =parent;
 
-
-        # We now where the rtl file is. 
+        # We know where the rtl file is. 
         # Let's read in the file to have IOs defined
-        self.dut=verilog_module(file=self.vlogsrcpath 
-                + '/hb_universal.sv')
+        self.vlogext = '.v'
+
+        self.dut=verilog_module(file=self.vlogsrcpath + '/hb_universal.sv')
 
         # Define the signal connectors associated with this 
         # controller
         # These are signals of tb driving several targets
         # Not present in DUT
-        self.connectors=verilog_connector_bundle()
-
-        if len(arg)>=1:
-            parent=arg[0]
-            self.copy_propval(parent,self.proplist)
-            self.parent =parent;
+        self.connectors=rtl_connector_bundle()
 
         #These are signals not in dut
         self.newsigs_write=[
@@ -63,6 +55,7 @@ class controller(rtl):
         self.signallist_write=[
             ('reset', 1),
             ('initdone',0),
+            ('io_in_enable_clk_div',1),
         ]
 
         #These are signals not in dut
@@ -123,6 +116,8 @@ class controller(rtl):
         for name in [ 'reset', ]:
             f.set_control_data(time=self.time,name=name,val=0)
 
+
+       
     def start_datafeed(self):
         f=self.iofile_bundle.Members['control_write']
         for name in [ 'initdone', ]:
