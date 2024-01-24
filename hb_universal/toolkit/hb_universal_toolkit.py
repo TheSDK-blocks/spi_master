@@ -171,6 +171,7 @@ class hb_universal_toolkit():
         figure.show()
 
     def plot_sig_fft(self, vec, signals, modes):
+        #pdb.set_trace()
         figure, axis = plt.subplots(1, len(modes), figsize=(8,2))
 
         figure.suptitle("Frequency responses")
@@ -187,13 +188,14 @@ class hb_universal_toolkit():
             fft_signal = np.fft.fft(signal)
             freq = np.fft.fftfreq(len(signal), d=1)
              
-            axis[i].plot(freq[:int(sig_len/2)], 20*np.log10(fft_signal)[:int(len(fft_signal)/2)], 'g')
-            axis[i].set_title(f"mode: {modes[i]}")
+            axis.plot(freq[:int(sig_len/2)], 20*np.log10(fft_signal)[:int(len(fft_signal)/2)], 'g')
+            axis.set_title(f"mode: {modes[i]}")
             
         figure.show()
 
     def plot_simple_signals(self, vecs, input_signal, output_signals, modes):
         xlims_py = [0, len(output_signals[0][0])] #For plotting
+        pdb.set_trace()
 
         if ("I" in vecs): 
             Ifigure, Iaxis = plt.subplots(2, 3, figsize=(8,4))

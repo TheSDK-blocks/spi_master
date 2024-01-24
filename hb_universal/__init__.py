@@ -250,15 +250,15 @@ if __name__=="__main__":
     hb_universal_controller.start_datafeed()
 
     #Sim controls
-    isInteractive = [True] 
-    isInteractive_decim = [False] 
+    isInteractive = [False] 
+    isInteractive_decim = [True] 
     model = 'sv'
     lang='sv'
 
     interpolation_factor = 2
     resolution = 16 
     modes = [  'two'  ]
-    simulation_type = 'interp' # interp , interp_decim
+    simulation_type = 'interp_decim' # interp , interp_decim
     input_list = [ ]
     output_list = [ ]
     output_list_decim = [ ]
@@ -272,12 +272,12 @@ if __name__=="__main__":
     #Input, output and intermediate scaling
     scaling = (math.pow(2, resolution - 2) - 1)
     descaling = (math.pow(2, resolution - 2) - 1)
-    block_scales = [4]
-    block_scales_decim = [2]
+    block_scales = [2]
+    block_scales_decim = [1]
 
  
     # 5G, Impulse, Sine, Square, Triangle
-    sig_type = "Impulse"
+    sig_type = "5G"
     # Signals to be printed
     vecs = ["I"] 
     #If coeffs will be plotted
@@ -377,7 +377,7 @@ if __name__=="__main__":
         #dut_interp.IOS.Members["enable_clk_div"].Data = np.full(vec_len, 1).reshape(-1, 1)
 
         if modes[i] in ["bypass","two" ]:    
-            dut_interp.IOS.Members["output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
+            dut_interp.IOS.Members["output_switch"].Data = np.full(vec_len,1).reshape(-1, 1)
         elif modes[i] in ["four" ]:    
             dut_interp.IOS.Members["ndiv"].Data = np.full(vec_len, 1).reshape(-1, 1)
             dut_interp.IOS.Members["hb1output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
@@ -401,15 +401,15 @@ if __name__=="__main__":
 
 
         if simulation_type == 'interp_decim':
-            rst = np.full(vec_len, 0)
-            until_hb3_out_ready = (hb1_H.size * 2 + hb2_H.size * 2 + hb3_H.size * 2) * 4
-            rst[:until_hb3_out_ready] = 1 
-            dut_decim.IOS.Members["reset_loop"].Data = rst.reshape(-1, 1)
+            #rst = np.full(vec_len, 0)
+            #until_hb3_out_ready = (hb1_H.size * 2 + hb2_H.size * 2 + hb3_H.size * 2) * 4
+            #rst[:until_hb3_out_ready] = 1 
+            #dut_decim.IOS.Members["reset_loop"].Data = rst.reshape(-1, 1)
 
-            dut_decim.IOS.Members["mode"].Data = np.full(vec_len, i).reshape(-1, 1)
+            #dut_decim.IOS.Members["mode"].Data = np.full(vec_len, i).reshape(-1, 1)
 
             #These are constants
-            dut_decim.IOS.Members["cic3shift"].Data = np.full(vec_len, 0).reshape(-1, 1)
+            #dut_decim.IOS.Members["cic3shift"].Data = np.full(vec_len, 0).reshape(-1, 1)
             dut_decim.IOS.Members["convmode"].Data = np.full(vec_len, 1).reshape(-1, 1)
 
             if modes[i] in ["bypass","two" ]:    
@@ -433,7 +433,7 @@ if __name__=="__main__":
                 dut_decim.IOS.Members["hb3output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
 
             #Scales
-            dut_decim.IOS.Members["scale"].Data = np.full(vec_len, block_scales_decim[2]).reshape(-1, 1)
+            dut_decim.IOS.Members["scale"].Data = np.full(vec_len, block_scales_decim[0]).reshape(-1, 1)
      
             #These are clocks
             dut_decim.IOS.Members['control_write'] = hb_universal_controller.IOS.Members['control_write']
@@ -487,6 +487,8 @@ if __name__=="__main__":
            
     if sig_type != "5G":
         hb_universal_tk.plot_simple_signals(vecs, data, output_list, modes) 
+        if simulation_type == 'interp_decim':
+            hb_universal_tk.plot_simple_signals(vecs, output_list[0][0], output_list_decim, modes) 
     else:
         if simulation_type == 'interp_decim':
             plot_5G_output(vecs, signal_gen, output_list_decim, descaling, modes, False)
@@ -495,10 +497,12 @@ if __name__=="__main__":
 
     if plot_sig_fft:
         if ("I" in vecs):
-            hb_universal_tk.plot_sig_fft("I", output_list[1:], modes[1:])
+            hb_universal_tk.plot_sig_fft("I", output_list, modes)
+            if simulation_type == 'interp_decim':
+                hb_universal_tk.plot_sig_fft("Decim I", output_list_decim, modes)
 
         if ("Q" in vecs):
-            hb_universal_tk.plot_sig_fft("Q", output_list[1:], modes[1:])
+            hb_universal_tk.plot_sig_fft("Q", output_list, modes)
 
     plt.show()
 
