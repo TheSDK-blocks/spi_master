@@ -277,7 +277,7 @@ if __name__=="__main__":
 
  
     # 5G, Impulse, Sine, Square, Triangle
-    sig_type = "5G"
+    sig_type = "Impulse"
     # Signals to be printed
     vecs = ["I"] 
     #If coeffs will be plotted
@@ -354,7 +354,7 @@ if __name__=="__main__":
 
         #Input data
         if sig_type == "5G":
-            input_data = np.repeat(np.insert((I_sig + 1j * Q_sig),0,np.zeros(100)), interpolation_factor)
+            input_data = np.repeat(np.insert((I_sig + 1j * Q_sig),0,np.zeros(101)), interpolation_factor)
             vec_len = len(input_data)
         else:
             scaled_data = np.repeat(np.rint(data * scaling), interpolation_factor)
@@ -377,7 +377,7 @@ if __name__=="__main__":
         #dut_interp.IOS.Members["enable_clk_div"].Data = np.full(vec_len, 1).reshape(-1, 1)
 
         if modes[i] in ["bypass","two" ]:    
-            dut_interp.IOS.Members["output_switch"].Data = np.full(vec_len,1).reshape(-1, 1)
+            dut_interp.IOS.Members["output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
         elif modes[i] in ["four" ]:    
             dut_interp.IOS.Members["ndiv"].Data = np.full(vec_len, 1).reshape(-1, 1)
             dut_interp.IOS.Members["hb1output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
@@ -475,7 +475,7 @@ if __name__=="__main__":
             #pdb.set_trace()
             #sig=np.zeros(len(dut_decim.IOS.Members["iptr_A"].Data))
             #sig[int(len(sig)/2):int(len(sig)/2+interpolation_factor)]=1*scaling
-            #dut_decim.IOS.Members["iptr_A"].Data=(sig+1j*sig).reshape(-1,1)
+            dut_decim.IOS.Members["iptr_A"].Data=input_data.reshape(-1, 1)
             dut_decim.run()
             #pdb.set_trace()
             sv_I = dut_decim.IOS.Members["Z"].Data.real[: ,0].astype("int16")[::interpolation_factor]
@@ -488,7 +488,8 @@ if __name__=="__main__":
     if sig_type != "5G":
         hb_universal_tk.plot_simple_signals(vecs, data, output_list, modes) 
         if simulation_type == 'interp_decim':
-            hb_universal_tk.plot_simple_signals(vecs, output_list[0][0], output_list_decim, modes) 
+            #hb_universal_tk.plot_simple_signals(vecs, output_list[0][0], output_list_decim, modes) 
+            hb_universal_tk.plot_simple_signals(vecs, data, output_list_decim, modes) 
     else:
         if simulation_type == 'interp_decim':
             plot_5G_output(vecs, signal_gen, output_list_decim, descaling, modes, False)
