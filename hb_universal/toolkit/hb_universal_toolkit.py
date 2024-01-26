@@ -195,7 +195,7 @@ class hb_universal_toolkit():
 
     def plot_simple_signals(self, vecs, input_signal, output_signals, modes):
         xlims_py = [0, len(output_signals[0][0])] #For plotting
-        pdb.set_trace()
+        #pdb.set_trace()
 
         if ("I" in vecs): 
             Ifigure, Iaxis = plt.subplots(2, 3, figsize=(8,4))

@@ -277,7 +277,7 @@ if __name__=="__main__":
 
  
     # 5G, Impulse, Sine, Square, Triangle
-    sig_type = "Impulse"
+    sig_type = "5G"
     # Signals to be printed
     vecs = ["I"] 
     #If coeffs will be plotted
@@ -475,9 +475,9 @@ if __name__=="__main__":
             #pdb.set_trace()
             #sig=np.zeros(len(dut_decim.IOS.Members["iptr_A"].Data))
             #sig[int(len(sig)/2):int(len(sig)/2+interpolation_factor)]=1*scaling
-            dut_decim.IOS.Members["iptr_A"].Data=input_data.reshape(-1, 1)
+            #dut_decim.IOS.Members["iptr_A"].Data=input_data.reshape(-1, 1) [::2]
             dut_decim.run()
-            #pdb.set_trace()
+            pdb.set_trace()
             sv_I = dut_decim.IOS.Members["Z"].Data.real[: ,0].astype("int16")[::interpolation_factor]
             sv_Q = dut_decim.IOS.Members["Z"].Data.imag[:, 0].astype("int16")[::interpolation_factor]
 
@@ -488,8 +488,8 @@ if __name__=="__main__":
     if sig_type != "5G":
         hb_universal_tk.plot_simple_signals(vecs, data, output_list, modes) 
         if simulation_type == 'interp_decim':
-            #hb_universal_tk.plot_simple_signals(vecs, output_list[0][0], output_list_decim, modes) 
-            hb_universal_tk.plot_simple_signals(vecs, data, output_list_decim, modes) 
+            hb_universal_tk.plot_simple_signals(vecs, output_list[0][0], output_list_decim, modes) 
+            #hb_universal_tk.plot_simple_signals(vecs, data, output_list_decim, modes) 
     else:
         if simulation_type == 'interp_decim':
             plot_5G_output(vecs, signal_gen, output_list_decim, descaling, modes, False)
