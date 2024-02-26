@@ -94,7 +94,6 @@ class hb_universal(rtl,thesdk):
         #Inputs roll after initdone
         self.iofile_bundle.Members['scale'].rtl_io_condition='initdone'
         self.iofile_bundle.Members['output_switch'].rtl_io_condition='initdone'
-        #self.iofile_bundle.Members['enable_clk_div'].rtl_io_condition='initdone'
         self.iofile_bundle.Members['convmode'].rtl_io_condition='initdone'
         self.iofile_bundle.Members['iptr_A'].rtl_io_condition='initdone'
 
@@ -111,7 +110,6 @@ class hb_universal(rtl,thesdk):
             #Inputs
             _=rtl_iofile(self, name='scale', dir='in', iotype='sample', datatype='int', ionames=['io_in_scale'])
             _=rtl_iofile(self, name='output_switch', dir='in', iotype='sample', datatype='int', ionames=['io_in_output_switch'])
-            #_=rtl_iofile(self, name='enable_clk_div', dir='in', iotype='sample', datatype='int', ionames=['io_in_enable_clk_div'])
             _=rtl_iofile(self, name='convmode', dir='in', iotype='sample', datatype='int', ionames=['io_in_convmode'])
             _=rtl_iofile(self, name='iptr_A', dir='in', iotype='sample', datatype='scomplex', ionames=['io_in_iptr_A_real', 'io_in_iptr_A_imag'])
 
@@ -285,20 +283,6 @@ if __name__=="__main__":
     #If plot sig FFT 
     plot_sig_fft = True
 
-   # if simulation_type == "interp":
-   #     hb1_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb1-config.yml"))
-   #     hb2_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb2-config.yml"))
-   #     hb3_H = np.array(hb_universal_tk.load_H("../chisel/f2_interpolator/hb_interpolator/configs/hb3-config.yml"))
-   # else:    
-   #     hb1_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb1-config.yml"))
-   #     hb2_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb2-config.yml"))
-   #     hb3_H = np.array(hb_universal_tk.load_H("../chisel/f2_decimator/hb_decimator/configs/hb3-config.yml"))
-
-   # #Plot coeffs and FFT
-   # if plot_coeffs:
-   #     hb_universal_tk.plot_coeff_fft(hb1_H, hb2_H, hb3_H)
-   #
-
     if sig_type == "5G":
         #Setup Signal gen and preplot
         signal_gen = NR_signal_generator()
@@ -363,18 +347,7 @@ if __name__=="__main__":
             
         input_list.append(input_data)
         dut_interp.IOS.Members["iptr_A"].Data = input_data.reshape(-1, 1)
-
-        #rst = np.full(vec_len, 0)
-        #until_hb3_out_ready = (hb1_H.size * 2 + hb2_H.size * 2 + hb3_H.size * 2) * 4
-        #rst[:until_hb3_out_ready] = 1 
-        #dut_interp.IOS.Members["reset_loop"].Data = rst.reshape(-1, 1)
-
-        #dut_interp.IOS.Members["mode"].Data = np.full(vec_len, i).reshape(-1, 1)
-
-        #These are constants
-        #dut_interp.IOS.Members["cic3shift"].Data = np.full(vec_len, 0).reshape(-1, 1)
         dut_interp.IOS.Members["convmode"].Data = np.full(vec_len, 0).reshape(-1, 1)
-        #dut_interp.IOS.Members["enable_clk_div"].Data = np.full(vec_len, 1).reshape(-1, 1)
 
         if modes[i] in ["bypass","two" ]:    
             dut_interp.IOS.Members["output_switch"].Data = np.full(vec_len,0).reshape(-1, 1)
@@ -399,17 +372,7 @@ if __name__=="__main__":
                #These are clocks
         dut_interp.IOS.Members['control_write'] = hb_universal_controller.IOS.Members['control_write']     
 
-
         if simulation_type == 'interp_decim':
-            #rst = np.full(vec_len, 0)
-            #until_hb3_out_ready = (hb1_H.size * 2 + hb2_H.size * 2 + hb3_H.size * 2) * 4
-            #rst[:until_hb3_out_ready] = 1 
-            #dut_decim.IOS.Members["reset_loop"].Data = rst.reshape(-1, 1)
-
-            #dut_decim.IOS.Members["mode"].Data = np.full(vec_len, i).reshape(-1, 1)
-
-            #These are constants
-            #dut_decim.IOS.Members["cic3shift"].Data = np.full(vec_len, 0).reshape(-1, 1)
             dut_decim.IOS.Members["convmode"].Data = np.full(vec_len, 1).reshape(-1, 1)
 
             if modes[i] in ["bypass","two" ]:    
@@ -469,13 +432,7 @@ if __name__=="__main__":
         #Append to list
         output_list.append([scaled_sv_I, scaled_sv_Q])
 
-
-
         if simulation_type == 'interp_decim':
-            #pdb.set_trace()
-            #sig=np.zeros(len(dut_decim.IOS.Members["iptr_A"].Data))
-            #sig[int(len(sig)/2):int(len(sig)/2+interpolation_factor)]=1*scaling
-            #dut_decim.IOS.Members["iptr_A"].Data=input_data.reshape(-1, 1) [::2]
             dut_decim.run()
             pdb.set_trace()
             sv_I = dut_decim.IOS.Members["Z"].Data.real[: ,0].astype("int16")[::interpolation_factor]
@@ -489,7 +446,6 @@ if __name__=="__main__":
         hb_universal_tk.plot_simple_signals(vecs, data, output_list, modes) 
         if simulation_type == 'interp_decim':
             hb_universal_tk.plot_simple_signals(vecs, output_list[0][0], output_list_decim, modes) 
-            #hb_universal_tk.plot_simple_signals(vecs, data, output_list_decim, modes) 
     else:
         if simulation_type == 'interp_decim':
             plot_5G_output(vecs, signal_gen, output_list_decim, descaling, modes, False)
@@ -506,11 +462,5 @@ if __name__=="__main__":
             hb_universal_tk.plot_sig_fft("Q", output_list, modes)
 
     plt.show()
-
-    #py = hb_universal_tk.FIR.calc_FIR(py_data.reshape(-1, 1)) / descaling
-    #fg1 = axis[0, 1]          
-    #axis[0, 1].plot(np.arange(0, len(py), 1), py, 'b-') 
-    #axis[0, 1].set_title("FIR [py]")   
-    #axis[0, 1].set_xlim(xlims_py)
 
     input()
