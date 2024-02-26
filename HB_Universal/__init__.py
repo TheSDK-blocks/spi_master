@@ -42,7 +42,7 @@ import math
 from toolkit.hb_universal_toolkit import hb_universal_toolkit as hb_universal_tk
 
 
-class hb_universal(rtl,thesdk):
+class HB_Universal(rtl,thesdk):
     @property
     def _classfile(self):
         return os.path.dirname(os.path.realpath(__file__)) + "/"+__name__
@@ -234,8 +234,8 @@ if __name__=="__main__":
     from itertools import chain
     import plot_format
 
-    from  hb_universal import *
-    from  hb_universal.controller import controller as hb_universal_controller
+    from  HB_Universal import *
+    from  HB_Universal.controller import controller as hb_universal_controller
     import pdb
     import math
     plot_format.set_style('isscc')
