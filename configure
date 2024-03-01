@@ -5,28 +5,32 @@ MODULE=$( basename ${THISDIR})
 #Defines TheSDK environment variables
 . ${THISDIR}/../../TheSDK.config
 
-#echo "Configuring FFT chisel generator"
-#cd $THISDIR/chisel && ./configure && cd ..
+echo "Configuring urc chisel generator"
+cd $THISDIR/chisel && ./configure && cd ..
 
 CURRENTFILE=${THISDIR}/Makefile
 echo "Generating Makefile"
 
 cat << EOF > ${THISDIR}/Makefile
 
-.PHONY: all sim chisel clean
-#.PHONY: all sim doc clean
+.PHONY: all sim chisel doc clean c
+
+chisel/Makefile:
+	cd chisel && ./configure
+
+gen_coeffs ?= false
 
 all: chisel sim
-#all: sim
 
-#sim: chisel
+c: chisel sim
+
 sim:
 	cd ${THISDIR}/${MODULE} && \\
 	${PYL} __init__.py
 
-chisel:
+chisel: chisel/Makefile
 	cd $THISDIR/chisel && \\
-	make
+	\$(MAKE) VERILOGDIR=${THISDIR}/sv gen_coeffs=\$(gen_coeffs)
 
 doc:
 	cd $THISDIR/doc && \\
@@ -35,8 +39,15 @@ doc:
 clean:
 	cd ${THISDIR}/chisel && \\
 	make clean && \\
-	rm -rf ${THISDIR}/simulations/* 
+	rm -rf ${THISDIR}/simulations/*
    
+help: 	## Show this help.
+	@echo  '----------------------------------------------------------------------'
+	@echo  'Makefile for running URC simulations with different signal sources'
+	@echo  'Change sig_type variable in __init__.py to 5G, Sine, Impulse, Square, Triangle to simulate'
+	@echo  'make sim, simulates'
+	@echo  'make chisel, compiles the chisel, if gencoeffs == true also generates the H files'
+
 EOF
 exit 0
 
