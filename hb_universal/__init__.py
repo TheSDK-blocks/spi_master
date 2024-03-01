@@ -37,9 +37,9 @@ class hb_universal(rtl, thesdk):
 
     def __init__(self,*arg): 
         self.print_log(type='I', msg='Inititalizing %s' %(__name__)) 
-        self.proplist = [ 'Rs' ];    # Properties that can be propagated from parent
-        self.Rs =  100e6;            # Sampling frequency
-        self.IOS=Bundle()            # Pointer for input data
+        self.proplist = [ 'Rs' ];   # Properties that can be propagated from parent
+        self.Rs = 100e6;            # Sampling frequency
+        self.IOS = Bundle()         # Pointer for input data
 
         self.IOS.Members["convmode"] = IO()
         self.IOS.Members["scale"] = IO()
@@ -48,7 +48,8 @@ class hb_universal(rtl, thesdk):
         self.IOS.Members["iptr_A"] = IO()
         self.IOS.Members["Z"] = IO()
 
-        self.IOS.Members['control_write']= IO() 
+        self.IOS.Members['control_write']= IO()
+        self.IOS.Members["clock_slow"] = IO() 
         self.IOS.Members["clock"] = IO()
         self.IOS.Members["reset"] = IO()
 
@@ -135,6 +136,8 @@ class hb_universal(rtl, thesdk):
     def define_io_conditions(self):
         """When iofiles start to roll
         """
+        self.iofile_bundle.Members['clock_slow'].rtl_io_condition='initdone'
+
         #Inputs roll after initdone
         self.iofile_bundle.Members['scale'].rtl_io_condition='initdone'
         self.iofile_bundle.Members['output_switch'].rtl_io_condition='initdone'
@@ -156,6 +159,7 @@ class hb_universal(rtl, thesdk):
             _=rtl_iofile(self, name='scale', dir='in', iotype='sample', datatype='int', ionames=['io_in_scale'])
             _=rtl_iofile(self, name='output_switch', dir='in', iotype='sample', datatype='int', ionames=['io_in_output_switch'])
             _=rtl_iofile(self, name='convmode', dir='in', iotype='sample', datatype='int', ionames=['io_in_convmode'])
+            _=rtl_iofile(self, name='clock_slow', dir='in', iotype='sample', datatype='int', ionames=['io_clock_slow'])
             _=rtl_iofile(self, name='iptr_A', dir='in', iotype='sample', datatype='scomplex', ionames=['io_in_iptr_A_real', 'io_in_iptr_A_imag'])
 
             #Outputs
@@ -181,8 +185,8 @@ if __name__=="__main__":
     modes = [16]
 
     # Interactive control        
-    is_interactive_interp = [0, 0, 0, 0, 0] 
-    is_interactive_decim = [0, 0, 0, 0, 0] 
+    is_interactive_interp = 0 
+    is_interactive_decim = 0 
 
     # Plot toggles
     vecs = ["I"]
@@ -214,10 +218,6 @@ if __name__=="__main__":
     inputs = [ ]
     interp_outputs = [ ]
     interp_decim_outputs = [ ]
-
-    #Init test entities here:
-    interp = None
-    decim = None
 
     #Setup sim controller
     dut_controller = dut_controller()
@@ -284,11 +284,9 @@ if __name__=="__main__":
 
     inputs.append(input_data)
 
-    #Setup controllers
+    #Setup controller
+    interp.IOS.Members['clock_slow'].Data = np.resize([1,0], len(input_data)).reshape(-1, 1)
     interp.IOS.Members['control_write'] = dut_controller.IOS.Members['control_write']     
-
-    if conversion_mode == 'interp_decim':
-        dut_decim.IOS.Members['control_write'] = dut_controller.IOS.Members['control_write']
 
     ## Run interp
     interp.run()
@@ -298,9 +296,13 @@ if __name__=="__main__":
     sv_Q = interp.IOS.Members["Z"].Data.imag[:,0].astype("int16") / scaling
     
     #Append to list
-    interp_outputs.append([sv_I, sv_Q])
+    interp_outputs.append([sv_I, sv_Q, conversion_factor])
 
     if conversion_mode == 'interp_decim':
+        #Setup controller
+        decim.IOS.Members['clock_slow'].Data = np.resize([1,0], len(input_data)).reshape(-1, 1)
+        decim.IOS.Members['control_write'] = dut_controller.IOS.Members['control_write']
+
         ## Run decim
         decim.run()
 
@@ -309,11 +311,11 @@ if __name__=="__main__":
         sv_Q = decim.IOS.Members["Z"].Data.imag[:,0].astype("int16")[::conversion_factor] / scaling
 
         #Append to list
-        interp_decim_outputs.append([sv_I, sv_Q])
+        interp_decim_outputs.append([sv_I, sv_Q, conversion_factor])
 
     ### Plotting
     if signal_type == "5G":
-        dsp_tk.plot_5G_output(vecs=vecs, \
+        dsp_tk.plot_5G_signals(vecs=vecs, \
                                     convmode=conversion_mode, \
                                     modes=modes, \
                                     signal_gen=signal_gen, \
@@ -323,7 +325,7 @@ if __name__=="__main__":
                                     plot_psd=plot_psd, \
                                     plot_raw=plot_raw)
         if conversion_mode == 'interp_decim':
-            dsp_tk.plot_5G_output(vecs=vecs, \
+            dsp_tk.plot_5G_signals(vecs=vecs, \
                                         convmode=conversion_mode, \
                                         modes=modes, \
                                         signal_gen=signal_gen, \

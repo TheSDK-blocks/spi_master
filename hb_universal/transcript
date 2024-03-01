@@ -1,0 +1,26 @@
+# //  Questa Sim-64
+# //  Version 10.6_1 linux_x86_64 Jan 30 2017
+# //
+# //  Copyright 1991-2017 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  QuestaSim and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# vsim -t 1ps -novopt work.tb_hb_universal -do "/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/interactive_control_files/modelsim/dofile.do" -gg_file_control_write=/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/control_write_pKx5PNVtRWDTg6jK.txt -gg_file_iptr_A=/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/iptr_A_SLN6HXXm7IdJjwxe.txt -gg_file_convmode=/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/convmode_7weGKA4bEgMnPBPA.txt -gg_file_clock_slow=/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/clock_slow_oZf3g6M0I5OLbH7S.txt -gg_file_scale=/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/scale_hsJs0L0Ygu1F1pfx.txt -gg_Rs=100000000.0 -gg_file_Z=/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/Z_Y2CYrXIoR4Mtg3yY.txt -gg_file_output_switch=/home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/output_switch_iwoHHaDleZDYpZlh.txt 
+# Start time: 14:22:06 on Mar 01,2024
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.tb_hb_universal
+# Loading work.hb_universal
+# do /home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/interactive_control_files/modelsim/dofile.do
+# Ready to read
+# ** Note: $finish    : /home/pro/a-core/osimola/URC/standalone_dsp_thesdk/Entities/hb_universal/simulations/sv/2_interp/rtl/tb_hb_universal.sv(182)
+#    Time: 97685 ns  Iteration: 1  Instance: :tb_hb_universal
+# End time: 14:22:24 on Mar 01,2024, Elapsed time: 0:00:18
+# Errors: 0, Warnings: 1

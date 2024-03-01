@@ -20,7 +20,7 @@ class controller(rtl):
 
         self.IOS=Bundle()
         self.IOS.Members['control_write']= IO()        #We use this for writing
-        _=rtl_iofile(self, name='control_write', dir='in', iotype='event', ionames=['initdone', 'reset','io_in_enable_clk_div'])
+        _=rtl_iofile(self, name='control_write', dir='in', iotype='event', ionames=['initdone', 'reset'])
         #Permanent pointer assignment to write io
         self.IOS.Members['control_write'].Data=self.iofile_bundle.Members['control_write']
  
@@ -55,7 +55,6 @@ class controller(rtl):
         self.signallist_write=[
             ('reset', 1),
             ('initdone',0),
-            ('io_in_enable_clk_div',1),
         ]
 
         #These are signals not in dut
