@@ -19,10 +19,7 @@ sys.path.append('toolkit/')
 from thesdk import IO, thesdk
 from rtl import rtl, rtl_iofile, rtl_connector_bundle
 
-from NR_signal_generator import *
 from dsp_toolkit import *
-import plot_format
-plot_format.set_style('isscc')
 
 from hb_universal.hb_model import *
 
@@ -35,12 +32,11 @@ class hb_universal(rtl, thesdk):
     def _classfile(self):
         return os.path.dirname(os.path.realpath(__file__)) + "/"+__name__
 
-    def __init__(self,*arg): 
-        self.print_log(type='I', msg='Inititalizing %s' %(__name__)) 
-        self.proplist = [ 'Rs' ];   # Properties that can be propagated from parent
-        self.Rs = 100e6;            # Sampling frequency
-        self.IOS = Bundle()         # Pointer for input data
+    def __init__(self,*arg):
+        """HB parameters and attributes
 
+        """
+        self.print_log(type='I', msg='Inititalizing %s' %(__name__)) 
         self.IOS.Members["convmode"] = IO()
         self.IOS.Members["scale"] = IO()
         self.IOS.Members["output_switch"] = IO()
@@ -54,6 +50,10 @@ class hb_universal(rtl, thesdk):
         self.IOS.Members["reset"] = IO()
 
         self.py_model = hb_model()
+
+        self.proplist = [ 'Rs' ];   # Properties that can be propagated from parent
+        self.Rs = 100e6;            # Sampling frequency
+        self.IOS = Bundle()         # Pointer for input data
 
         self.model = 'py';             # Can be set externally, but is not propagated
         self.par = False              # By default, no parallel processing
@@ -182,7 +182,7 @@ if __name__=="__main__":
     dut_model = 'sv'
     conversion_mode = 'interp'
     signal_type = '5G'
-    modes = [16]
+    modes = [2]
 
     # Interactive control        
     is_interactive_interp = 0 
@@ -197,7 +197,7 @@ if __name__=="__main__":
 
     # Params for DUT
     resolution = 16
-    conversion_factor = 2**1
+    conversion_factor = modes[0]
 
     # Params for signal generation
     signal_gen = None
@@ -292,8 +292,8 @@ if __name__=="__main__":
     interp.run()
 
     #Read output to output_list
-    sv_I = interp.IOS.Members["Z"].Data.real[:,0].astype("int16") / scaling
-    sv_Q = interp.IOS.Members["Z"].Data.imag[:,0].astype("int16") / scaling
+    sv_I = interp.IOS.Members["Z"].Data.real[:,0] / scaling
+    sv_Q = interp.IOS.Members["Z"].Data.imag[:,0] / scaling
     
     #Append to list
     interp_outputs.append([sv_I, sv_Q, conversion_factor])
@@ -307,8 +307,8 @@ if __name__=="__main__":
         decim.run()
 
         #Read output to output_list
-        sv_I = decim.IOS.Members["Z"].Data.real[:,0].astype("int16")[::conversion_factor] / scaling
-        sv_Q = decim.IOS.Members["Z"].Data.imag[:,0].astype("int16")[::conversion_factor] / scaling
+        sv_I = decim.IOS.Members["Z"].Data.real[:,0][::conversion_factor] / scaling
+        sv_Q = decim.IOS.Members["Z"].Data.imag[:,0][::conversion_factor] / scaling
 
         #Append to list
         interp_decim_outputs.append([sv_I, sv_Q, conversion_factor])

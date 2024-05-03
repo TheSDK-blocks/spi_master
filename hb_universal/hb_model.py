@@ -25,17 +25,15 @@ import scipy.linalg as lin
 
 class hb_model(thesdk):
     def __init__(self):
-        self.HB1_params = [40,[0, 0.42, 0.499, 0.5]]
-        self.HB2_params = [8, [0, 0.225, 0.499, 0.5]]
-        self.HB3_params = [6, [0, 0.1125, 0.499, 0.5]]
+        self.filter_params = [40,[0, 0.42, 0.499, 0.5]] #Taps, bands
 
         self.resolution = 16
         self.gainBits = 5
         self.H = []
 
-    def gen_H(self, params):
-        n = params[0] 
-        bands = params[1]
+    def gen_H(self):
+        n = self.filter_params[0] 
+        bands = self.filter_params[1]
         desired = np.array([1, 0]) #Low-pass
 
         coeffs = sig.remez(n, np.array(bands), desired, fs = 1)
@@ -49,6 +47,10 @@ class hb_model(thesdk):
         return hb
 
     def generate_Hfiles(self, root, HB1, HB2, HB3):
+        HB1.gen_H() 
+        HB2.gen_H() 
+        HB3.gen_H()
+
         HB1.export_HB(root + "configs/hb1-config.yml")
         HB2.export_HB(root + "configs/hb2-config.yml")
         HB3.export_HB(root + "configs/hb3-config.yml")
@@ -81,10 +83,10 @@ class hb_model(thesdk):
 
 
     def interpolation(self, x):
-        x = np.pad(x,((0,0),(0,int(1))),'constant',constant_values=0)
+        x = np.pad(x, ((0,0), (0,int(1))), 'constant', constant_values=0)
         x = np.concatenate(x)
 
-        y = np.fft.ifft(np.fft.fft(x.reshape((-1,1))[:,0],len(x))*np.fft.fft(self.H[:,0],len(x))).reshape((-1,1))
+        y = np.fft.ifft(np.fft.fft(x.reshape((-1,1))[:,0], len(x))*np.fft.fft(self.H[:,0], len(x))).reshape((-1,1))
         
         ''' Same with convolution
         out=np.convolve(x2,self.H[:,0],mode='full').reshape((-1,1))
@@ -96,6 +98,15 @@ class hb_model(thesdk):
         fil=np.sum(fil, axis=-1).reshape(-1,1)
         fil=fil/(max(max(fil.imag),max(fil.real)))*(2**(self.resolution-2)-1)
         '''
+        return y 
+
+
+    def decimation(self, x):
+        x = np.fft.ifft(np.fft.fft(x.reshape((-1,1))[:,0], len(x))*np.fft.fft(self.H[:,0], len(x))).reshape((-1,1))
+
+        x = np.pad(x, ((0, 0), (0, int(1))), 'constant', constant_values=0)
+        y = np.concatenate(x)        
+        
         return y 
 
 
