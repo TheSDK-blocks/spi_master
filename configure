@@ -5,7 +5,7 @@ MODULE=$( basename ${THISDIR})
 #Defines TheSDK environment variables
 . ${THISDIR}/../../TheSDK.config
 
-echo "Configuring urc chisel generator"
+echo "Configuring chisel generator"
 cd $THISDIR/chisel && ./configure && cd ..
 
 CURRENTFILE=${THISDIR}/Makefile
@@ -13,16 +13,16 @@ echo "Generating Makefile"
 
 cat << EOF > ${THISDIR}/Makefile
 
-.PHONY: all sim chisel doc clean c
+.PHONY: all sim chisel doc clean 
 
 chisel/Makefile:
 	cd chisel && ./configure
 
-gen_coeffs ?= false
+
 
 all: chisel sim
 
-c: chisel sim
+
 
 sim:
 	cd ${THISDIR}/${MODULE} && \\
@@ -30,7 +30,8 @@ sim:
 
 chisel: chisel/Makefile
 	cd $THISDIR/chisel && \\
-	\$(MAKE) VERILOGDIR=${THISDIR}/sv gen_coeffs=\$(gen_coeffs)
+	\$(MAKE) && \\
+    cp $THISDIR/chisel/${MODULE}.sv $THISDIR/sv/${MODULE}.sv
 
 doc:
 	cd $THISDIR/doc && \\

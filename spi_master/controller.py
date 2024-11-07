@@ -37,7 +37,7 @@ class controller(rtl):
         # Let's read in the file to have IOs defined
         self.vlogext = '.v'
 
-        self.dut=verilog_module(file=self.vlogsrcpath + '/hb_universal.sv')
+        self.dut=verilog_module(file=self.vlogsrcpath + '/spi_master.sv')
 
         # Define the signal connectors associated with this 
         # controller
